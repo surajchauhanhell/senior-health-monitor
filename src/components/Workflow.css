@@ -1,0 +1,140 @@
+.workflow-section {
+    background: linear-gradient(180deg, #0d121f 0%, var(--color-bg-dark) 100%);
+}
+
+.workflow-timeline {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: var(--spacing-lg);
+    position: relative;
+}
+
+.timeline-item {
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.timeline-content {
+    background: var(--color-bg-card);
+    padding: 20px;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: var(--transition-smooth);
+    height: 100%;
+}
+
+.timeline-content:hover {
+    transform: translateY(-5px);
+    border-color: var(--color-primary);
+}
+
+.timeline-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.timeline-title {
+    font-size: 1rem;
+    color: var(--color-primary);
+    margin-bottom: 5px;
+}
+
+.timeline-desc {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.timeline-connector {
+    position: absolute;
+    top: 50%;
+    right: -15px;
+    width: 30px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: -1;
+}
+
+/* Graph Animation */
+.workflow-visual {
+    margin-top: var(--spacing-lg);
+    display: flex;
+    justify-content: center;
+}
+
+.graph-container {
+    width: 100%;
+    max-width: 800px;
+    height: 200px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: var(--border-radius-md);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.graph-line {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: linear-gradient(90deg, transparent, rgba(0, 234, 255, 0.2), transparent);
+    clip-path: polygon(0% 100%, 10% 80%, 20% 85%, 30% 60%, 40% 70%, 50% 40%, 60% 50%, 70% 20%, 80% 30%, 90% 10%, 100% 0%, 100% 100%);
+}
+
+.graph-point {
+    width: 10px;
+    height: 10px;
+    background: var(--color-primary);
+    border-radius: 50%;
+    position: absolute;
+    box-shadow: 0 0 10px var(--color-primary);
+}
+
+.point-1 {
+    bottom: 60px;
+    left: 30%;
+    animation: pulse-glow 2s infinite;
+}
+
+.point-2 {
+    bottom: 50px;
+    left: 60%;
+    animation: pulse-glow 2s infinite 0.5s;
+}
+
+.point-3 {
+    bottom: 150px;
+    left: 80%;
+    background: var(--color-accent);
+    box-shadow: 0 0 15px var(--color-accent);
+    animation: pulse-glow 1s infinite;
+}
+
+.alert-popup {
+    position: absolute;
+    bottom: 170px;
+    left: 75%;
+    background: var(--color-accent);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    animation: float 2s ease-in-out infinite;
+}
+
+@media (max-width: 768px) {
+    .timeline-connector {
+        display: none;
+    }
+
+    .workflow-timeline {
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,181 @@
+.ui-section {
+    background: linear-gradient(180deg, #0d121f 0%, var(--color-bg-dark) 100%);
+    overflow: hidden;
+}
+
+.ui-showcase {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 40px;
+    flex-wrap: wrap;
+    padding-top: 40px;
+}
+
+.ui-card {
+    text-align: center;
+    width: 280px;
+}
+
+.ui-card h3 {
+    margin-top: 20px;
+    color: var(--color-primary);
+}
+
+.ui-card p {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+
+/* Phone Mockup */
+.phone-mockup {
+    width: 240px;
+    height: 480px;
+    background: #000;
+    border-radius: 30px;
+    border: 8px solid #333;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.phone-mockup .screen {
+    background: #1a1a1a;
+    height: 100%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Tablet Mockup */
+.tablet-mockup {
+    width: 320px;
+    height: 240px;
+    background: #000;
+    border-radius: 20px;
+    border: 8px solid #333;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.tablet-mockup .screen {
+    background: #1a1a1a;
+    height: 100%;
+    display: flex;
+}
+
+/* Screen Content */
+.app-header {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.sos-btn {
+    background: var(--color-accent);
+    color: white;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0 auto;
+    box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
+    animation: pulse-glow 2s infinite;
+}
+
+.med-reminder {
+    background: #333;
+    padding: 10px;
+    border-radius: 10px;
+    text-align: left;
+}
+
+.med-reminder span {
+    display: block;
+    color: white;
+    font-weight: bold;
+}
+
+.med-reminder small {
+    color: #aaa;
+}
+
+.voice-mic {
+    font-size: 2rem;
+    margin-top: auto;
+    margin-bottom: 10px;
+}
+
+.vitals-row {
+    display: flex;
+    gap: 10px;
+}
+
+.vital-box {
+    flex: 1;
+    background: #2a2a2a;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: white;
+}
+
+.alert-item {
+    font-size: 0.8rem;
+    padding: 8px;
+    background: rgba(255, 0, 85, 0.1);
+    color: #ff8a8a;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+.alert-item.ok {
+    background: rgba(107, 255, 179, 0.1);
+    color: #6bffb3;
+}
+
+/* Tablet Content */
+.dash-sidebar {
+    width: 60px;
+    background: #2a2a2a;
+    height: 100%;
+}
+
+.dash-main {
+    flex: 1;
+    padding: 15px;
+}
+
+.chart-placeholder {
+    height: 100px;
+    background: #2a2a2a;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background: linear-gradient(90deg, transparent, rgba(0, 234, 255, 0.3), transparent);
+}
+
+.risk-score {
+    font-size: 0.9rem;
+    color: var(--color-secondary);
+    font-weight: bold;
+}

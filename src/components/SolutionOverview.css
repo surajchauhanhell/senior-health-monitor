@@ -1,0 +1,128 @@
+.solution-section {
+    background: linear-gradient(180deg, var(--color-bg-dark) 0%, #0d121f 100%);
+}
+
+.solution-pipeline {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pipeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.step-icon {
+    font-size: 2.5rem;
+    background: var(--color-bg-card);
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: var(--transition-smooth);
+}
+
+.step-icon:hover {
+    transform: scale(1.1);
+}
+
+.glow-blue {
+    box-shadow: 0 0 15px rgba(0, 119, 255, 0.3);
+}
+
+.glow-cyan {
+    box-shadow: 0 0 15px rgba(0, 234, 255, 0.3);
+}
+
+.glow-green {
+    box-shadow: 0 0 15px rgba(107, 255, 179, 0.3);
+}
+
+.glow-red {
+    box-shadow: 0 0 15px rgba(255, 0, 85, 0.3);
+}
+
+.glow-purple {
+    box-shadow: 0 0 15px rgba(180, 0, 255, 0.3);
+}
+
+.pipeline-arrow {
+    font-size: 2rem;
+    color: var(--color-text-muted);
+    animation: pulse-arrow 2s infinite;
+}
+
+@keyframes pulse-arrow {
+
+    0%,
+    100% {
+        opacity: 0.3;
+        transform: translateX(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateX(5px);
+    }
+}
+
+.solution-highlights {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-sm);
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.highlight-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--border-radius-sm);
+}
+
+.check-icon {
+    color: var(--color-secondary);
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .pipeline-arrow {
+        transform: rotate(90deg);
+        margin: 10px 0;
+    }
+
+    .solution-pipeline {
+        flex-direction: column;
+    }
+
+    @keyframes pulse-arrow {
+
+        0%,
+        100% {
+            opacity: 0.3;
+            transform: rotate(90deg) translateY(0);
+        }
+
+        50% {
+            opacity: 1;
+            transform: rotate(90deg) translateY(5px);
+        }
+    }
+}

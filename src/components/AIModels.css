@@ -1,0 +1,51 @@
+.ai-section {
+    background: var(--color-bg-dark);
+}
+
+.ai-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.ai-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 20px;
+    border-radius: var(--border-radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: var(--transition-smooth);
+}
+
+.ai-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--color-primary);
+    transform: translateX(5px);
+}
+
+.ai-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 234, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.ai-icon {
+    font-size: 1.8rem;
+}
+
+.ai-name {
+    color: var(--color-text-main);
+    margin-bottom: 5px;
+}
+
+.ai-desc {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}

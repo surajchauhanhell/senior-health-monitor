@@ -1,0 +1,40 @@
+.hardware-section {
+    background: var(--color-bg-dark);
+}
+
+.hardware-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.hardware-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: var(--transition-smooth);
+}
+
+.hardware-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-5px);
+    border-color: var(--color-secondary);
+}
+
+.hardware-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.hardware-name {
+    color: var(--color-secondary);
+    font-family: var(--font-heading);
+    margin-bottom: 5px;
+}
+
+.hardware-desc {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
