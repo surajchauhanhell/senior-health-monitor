@@ -8,15 +8,16 @@
  * @param {number} spo2 - Oxygen Saturation (%)
  * @returns {string} - 'normal', 'warning', or 'critical'
  */
-export const calculateStatus = (age, hr, sys, dia, spo2) => {
-    let status = 'normal';
+export const calculateDetailedStatus = (age, hr, sys, dia, spo2) => {
+    let hrStatus = 'normal';
+    let bpStatus = 'normal';
+    let spo2Status = 'normal';
 
-    // 1. SpO2 Logic (Same for all ages)
-    if (spo2 < 90) return 'critical'; // Emergency
-    if (spo2 <= 94) status = 'warning'; // Critical Alert
+    // 1. SpO2 Logic
+    if (spo2 < 90) spo2Status = 'critical';
+    else if (spo2 <= 94) spo2Status = 'warning';
 
     // 2. Blood Pressure Logic
-    // Default to 18-39 if age is missing or young
     let bpRanges = {
         normal: { sys: [110, 120], dia: [70, 80] },
         warning: { sys: [121, 139], dia: [81, 89] },
@@ -35,21 +36,14 @@ export const calculateStatus = (age, hr, sys, dia, spo2) => {
         bpRanges.warning = { sys: [146, 159], dia: [90, 99] };
     }
 
-    // Check BP Critical (High)
-    if (sys >= bpRanges.critical.sys || dia >= bpRanges.critical.dia) return 'critical';
-    // Check BP Critical (Low)
-    if (sys < bpRanges.lowCritical.sys || dia < bpRanges.lowCritical.dia) return 'critical';
-
-    // Check BP Warning
-    // Note: If already 'warning' from SpO2, we keep it. If 'critical', we returned already.
-    // If current status is 'normal', check if BP pushes it to 'warning'
-    if (status === 'normal') {
-        if (
-            (sys >= bpRanges.warning.sys[0] && sys <= bpRanges.warning.sys[1]) ||
-            (dia >= bpRanges.warning.dia[0] && dia <= bpRanges.warning.dia[1])
-        ) {
-            status = 'warning';
-        }
+    // Check BP Critical
+    if (sys >= bpRanges.critical.sys || dia >= bpRanges.critical.dia || sys < bpRanges.lowCritical.sys || dia < bpRanges.lowCritical.dia) {
+        bpStatus = 'critical';
+    } else if (
+        (sys >= bpRanges.warning.sys[0] && sys <= bpRanges.warning.sys[1]) ||
+        (dia >= bpRanges.warning.dia[0] && dia <= bpRanges.warning.dia[1])
+    ) {
+        bpStatus = 'warning';
     }
 
     // 3. Heart Rate Logic
@@ -75,15 +69,23 @@ export const calculateStatus = (age, hr, sys, dia, spo2) => {
         hrLimits.critical = { min: 32, max: 130 };
     }
 
-    // Check HR Critical
-    if (hr > hrLimits.critical.max || hr < hrLimits.critical.min) return 'critical';
-
-    // Check HR Warning
-    if (status === 'normal') {
-        if (hr > hrLimits.warning.max || hr < hrLimits.warning.min) {
-            status = 'warning';
-        }
+    if (hr > hrLimits.critical.max || hr < hrLimits.critical.min) {
+        hrStatus = 'critical';
+    } else if (hr > hrLimits.warning.max || hr < hrLimits.warning.min) {
+        hrStatus = 'warning';
     }
 
-    return status;
+    // Overall Status
+    let overallStatus = 'normal';
+    if (hrStatus === 'critical' || bpStatus === 'critical' || spo2Status === 'critical') {
+        overallStatus = 'critical';
+    } else if (hrStatus === 'warning' || bpStatus === 'warning' || spo2Status === 'warning') {
+        overallStatus = 'warning';
+    }
+
+    return { hrStatus, bpStatus, spo2Status, overallStatus };
+};
+
+export const calculateStatus = (age, hr, sys, dia, spo2) => {
+    return calculateDetailedStatus(age, hr, sys, dia, spo2).overallStatus;
 };

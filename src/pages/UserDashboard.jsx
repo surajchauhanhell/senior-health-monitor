@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { calculateStatus } from '../utils/healthLogic';
+import { calculateStatus, calculateDetailedStatus } from '../utils/healthLogic';
+import { BluetoothManager } from '../utils/bluetoothManager';
 import '../styles/Dashboard.css';
 
 const UserDashboard = () => {
@@ -27,6 +28,19 @@ const UserDashboard = () => {
     const [isScanning, setIsScanning] = useState(false);
     const [scannedDevices, setScannedDevices] = useState([]);
     const [connectedDevice, setConnectedDevice] = useState(null);
+
+    // Calculate detailed status for display
+    let userAge = 65;
+    if (profile.age && !isNaN(parseInt(profile.age))) {
+        userAge = parseInt(profile.age);
+    }
+    const { hrStatus, bpStatus, spo2Status } = calculateDetailedStatus(
+        userAge,
+        currentVital.hr,
+        currentVital.bp_sys,
+        currentVital.bp_dia,
+        currentVital.spo2
+    );
 
     // Simulate real-time data updates and sync to Supabase
     useEffect(() => {
@@ -298,6 +312,44 @@ const UserDashboard = () => {
         alert(`Connected to ${device.name}`);
     };
 
+    const handleSOS = () => {
+        if (!profile.emergency_contact) {
+            alert("Please set an emergency contact in Settings first!");
+            setActiveTab('settings');
+            return;
+        }
+
+        const phoneMatch = profile.emergency_contact.match(/\d+/g);
+
+        if (!phoneMatch) {
+            alert("Could not find a valid phone number in Emergency Contact.");
+            return;
+        }
+
+        const phoneNumber = phoneMatch.join('');
+        const baseMessage = "Emergency! I need help immediately.";
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                    const fullMessage = `${baseMessage} My location: ${mapsLink}`;
+                    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(fullMessage)}`;
+                    window.open(whatsappUrl, '_blank');
+                },
+                (error) => {
+                    console.error("Error getting location:", error);
+                    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(baseMessage)}`;
+                    window.open(whatsappUrl, '_blank');
+                }
+            );
+        } else {
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(baseMessage)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+    };
+
     return (
         <div className="dashboard-layout">
             <aside className="sidebar">
@@ -351,7 +403,7 @@ const UserDashboard = () => {
                         >
                             Test Critical
                         </button>
-                        <button className="sos-button-small">SOS ALERT</button>
+                        <button className="sos-button-small" onClick={handleSOS}>SOS ALERT</button>
                     </div>
                 </header>
 
@@ -372,17 +424,17 @@ const UserDashboard = () => {
                                     <div className="stat-card">
                                         <h3>Heart Rate</h3>
                                         <div className="stat-value">{currentVital.hr} <small>BPM</small></div>
-                                        <div className="stat-status normal">Normal</div>
+                                        <div className={`stat-status ${hrStatus}`}>{hrStatus.charAt(0).toUpperCase() + hrStatus.slice(1)}</div>
                                     </div>
                                     <div className="stat-card">
                                         <h3>Blood Pressure</h3>
                                         <div className="stat-value">{currentVital.bp_sys}/{currentVital.bp_dia} <small>mmHg</small></div>
-                                        <div className="stat-status normal">Normal</div>
+                                        <div className={`stat-status ${bpStatus}`}>{bpStatus.charAt(0).toUpperCase() + bpStatus.slice(1)}</div>
                                     </div>
                                     <div className="stat-card">
                                         <h3>SpO2</h3>
                                         <div className="stat-value">{currentVital.spo2}%</div>
-                                        <div className="stat-status normal">Normal</div>
+                                        <div className={`stat-status ${spo2Status}`}>{spo2Status.charAt(0).toUpperCase() + spo2Status.slice(1)}</div>
                                     </div>
                                 </div>
 
@@ -411,248 +463,254 @@ const UserDashboard = () => {
                     </>
                 )}
 
-                {activeTab === 'history' && (
-                    <div className="history-container">
-                        <div className="upload-section">
-                            <h3>Upload Medical Report</h3>
-                            <form onSubmit={handleFileUpload} className="upload-form">
-                                <input
-                                    type="file"
-                                    onChange={(e) => setUploadFile(e.target.files[0])}
-                                    required
-                                    className="file-input"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="Description (e.g., Blood Test Report)"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    required
-                                    className="desc-input"
-                                />
-                                <button type="submit" className="btn btn-primary" disabled={uploading}>
-                                    {uploading ? 'Uploading...' : 'Upload Report'}
-                                </button>
-                            </form>
-                        </div>
-
-                        <h3>Past Reports</h3>
-                        {reports.length === 0 ? (
-                            <p className="no-data">No reports uploaded yet.</p>
-                        ) : (
-                            <div className="reports-grid">
-                                {reports.map(report => (
-                                    <div key={report.id} className="report-card">
-                                        <div className="report-icon">📄</div>
-                                        <div className="report-info">
-                                            <h4>{report.description}</h4>
-                                            <small>{new Date(report.created_at).toLocaleDateString()}</small>
-                                            <span className="file-name">{report.file_name}</span>
-                                        </div>
-                                        <a
-                                            href={`https://vltdfrogzzllrwxbevwe.supabase.co/storage/v1/object/public/medical-reports/${report.file_path}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="view-btn"
-                                        >
-                                            View
-                                        </a>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        <h3 style={{ marginTop: '40px' }}>Vital History</h3>
-                        {loadingHistory ? (
-                            <p>Loading history...</p>
-                        ) : historyData.length === 0 ? (
-                            <div className="no-data">
-                                <p>No history records found.</p>
-                                <small>Data will appear here once your device starts syncing.</small>
-                            </div>
-                        ) : (
-                            <table className="history-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date & Time</th>
-                                        <th>Heart Rate</th>
-                                        <th>BP (sys/dia)</th>
-                                        <th>SpO2</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {historyData.map((record) => (
-                                        <tr key={record.id}>
-                                            <td>{new Date(record.created_at).toLocaleString()}</td>
-                                            <td>{record.heart_rate} BPM</td>
-                                            <td>{record.systolic_bp}/{record.diastolic_bp}</td>
-                                            <td>{record.spo2}%</td>
-                                            <td>
-                                                <span className={`status-badge ${record.status}`}>
-                                                    {record.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                )}
-
-                {activeTab === 'settings' && (
-                    <div className="settings-container">
-                        <form onSubmit={handleProfileUpdate} className="profile-form">
-                            <div className="form-group">
-                                <label>Full Name</label>
-                                <input
-                                    type="text"
-                                    value={profile.full_name}
-                                    onChange={e => setProfile({ ...profile, full_name: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label>Age</label>
+                {
+                    activeTab === 'history' && (
+                        <div className="history-container">
+                            <div className="upload-section">
+                                <h3>Upload Medical Report</h3>
+                                <form onSubmit={handleFileUpload} className="upload-form">
                                     <input
-                                        type="number"
-                                        value={profile.age}
-                                        onChange={e => setProfile({ ...profile, age: e.target.value })}
+                                        type="file"
+                                        onChange={(e) => setUploadFile(e.target.files[0])}
+                                        required
+                                        className="file-input"
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Description (e.g., Blood Test Report)"
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        required
+                                        className="desc-input"
+                                    />
+                                    <button type="submit" className="btn btn-primary" disabled={uploading}>
+                                        {uploading ? 'Uploading...' : 'Upload Report'}
+                                    </button>
+                                </form>
+                            </div>
+
+                            <h3>Past Reports</h3>
+                            {reports.length === 0 ? (
+                                <p className="no-data">No reports uploaded yet.</p>
+                            ) : (
+                                <div className="reports-grid">
+                                    {reports.map(report => (
+                                        <div key={report.id} className="report-card">
+                                            <div className="report-icon">📄</div>
+                                            <div className="report-info">
+                                                <h4>{report.description}</h4>
+                                                <small>{new Date(report.created_at).toLocaleDateString()}</small>
+                                                <span className="file-name">{report.file_name}</span>
+                                            </div>
+                                            <a
+                                                href={`https://vltdfrogzzllrwxbevwe.supabase.co/storage/v1/object/public/medical-reports/${report.file_path}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="view-btn"
+                                            >
+                                                View
+                                            </a>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <h3 style={{ marginTop: '40px' }}>Vital History</h3>
+                            {loadingHistory ? (
+                                <p>Loading history...</p>
+                            ) : historyData.length === 0 ? (
+                                <div className="no-data">
+                                    <p>No history records found.</p>
+                                    <small>Data will appear here once your device starts syncing.</small>
+                                </div>
+                            ) : (
+                                <table className="history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date & Time</th>
+                                            <th>Heart Rate</th>
+                                            <th>BP (sys/dia)</th>
+                                            <th>SpO2</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {historyData.map((record) => (
+                                            <tr key={record.id}>
+                                                <td>{new Date(record.created_at).toLocaleString()}</td>
+                                                <td>{record.heart_rate} BPM</td>
+                                                <td>{record.systolic_bp}/{record.diastolic_bp}</td>
+                                                <td>{record.spo2}%</td>
+                                                <td>
+                                                    <span className={`status-badge ${record.status}`}>
+                                                        {record.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    )
+                }
+
+                {
+                    activeTab === 'settings' && (
+                        <div className="settings-container">
+                            <form onSubmit={handleProfileUpdate} className="profile-form">
+                                <div className="form-group">
+                                    <label>Full Name</label>
+                                    <input
+                                        type="text"
+                                        value={profile.full_name}
+                                        onChange={e => setProfile({ ...profile, full_name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Age</label>
+                                        <input
+                                            type="number"
+                                            value={profile.age}
+                                            onChange={e => setProfile({ ...profile, age: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Blood Group</label>
+                                        <select
+                                            value={profile.blood_group}
+                                            onChange={e => setProfile({ ...profile, blood_group: e.target.value })}
+                                        >
+                                            <option value="">Select</option>
+                                            <option value="A+">A+</option>
+                                            <option value="A-">A-</option>
+                                            <option value="B+">B+</option>
+                                            <option value="B-">B-</option>
+                                            <option value="O+">O+</option>
+                                            <option value="O-">O-</option>
+                                            <option value="AB+">AB+</option>
+                                            <option value="AB-">AB-</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Phone Number</label>
+                                    <input
+                                        type="tel"
+                                        value={profile.phone}
+                                        onChange={e => setProfile({ ...profile, phone: e.target.value })}
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Blood Group</label>
-                                    <select
-                                        value={profile.blood_group}
-                                        onChange={e => setProfile({ ...profile, blood_group: e.target.value })}
-                                    >
-                                        <option value="">Select</option>
-                                        <option value="A+">A+</option>
-                                        <option value="A-">A-</option>
-                                        <option value="B+">B+</option>
-                                        <option value="B-">B-</option>
-                                        <option value="O+">O+</option>
-                                        <option value="O-">O-</option>
-                                        <option value="AB+">AB+</option>
-                                        <option value="AB-">AB-</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="form-group">
-                                <label>Phone Number</label>
-                                <input
-                                    type="tel"
-                                    value={profile.phone}
-                                    onChange={e => setProfile({ ...profile, phone: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Address</label>
-                                <textarea
-                                    value={profile.address}
-                                    onChange={e => setProfile({ ...profile, address: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Emergency Contact</label>
-                                <input
-                                    type="text"
-                                    value={profile.emergency_contact}
-                                    onChange={e => setProfile({ ...profile, emergency_contact: e.target.value })}
-                                    placeholder="Name & Phone Number"
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Medical Conditions / Allergies</label>
-                                <textarea
-                                    value={profile.medical_conditions}
-                                    onChange={e => setProfile({ ...profile, medical_conditions: e.target.value })}
-                                />
-                            </div>
-                            <button type="submit" className="btn-primary" disabled={savingProfile}>
-                                {savingProfile ? 'Saving...' : 'Save Profile'}
-                            </button>
-                        </form>
-                    </div>
-                )}
-
-                {activeTab === 'devices' && (
-                    <div className="devices-container">
-                        <div className="device-section">
-                            <div className="section-header">
-                                <h3><span className="icon">🔵</span> Bluetooth Connection</h3>
-                                <p>Connect your wearable health monitor via Bluetooth.</p>
-                            </div>
-
-                            <div className="bluetooth-controls">
-                                {!isScanning && !connectedDevice && (
-                                    <button className="btn-primary scan-btn" onClick={handleScanBluetooth}>
-                                        Scan for Devices
-                                    </button>
-                                )}
-
-                                {isScanning && (
-                                    <div className="scanning-indicator">
-                                        <div className="spinner"></div>
-                                        <p>Scanning for nearby devices...</p>
-                                    </div>
-                                )}
-
-                                {connectedDevice && (
-                                    <div className="connected-device-card">
-                                        <div className="device-info">
-                                            <h4>{connectedDevice.name}</h4>
-                                            <span className="status-badge normal">Connected</span>
-                                        </div>
-                                        <button className="btn-secondary" onClick={() => setConnectedDevice(null)}>
-                                            Disconnect
-                                        </button>
-                                    </div>
-                                )}
-
-                                {!connectedDevice && scannedDevices.length > 0 && (
-                                    <div className="device-list">
-                                        <h4>Available Devices</h4>
-                                        {scannedDevices.map(device => (
-                                            <div key={device.id} className="device-item">
-                                                <span>{device.name}</span>
-                                                <button
-                                                    className="btn-small"
-                                                    onClick={() => handleConnectDevice(device)}
-                                                >
-                                                    Connect
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="device-section">
-                            <div className="section-header">
-                                <h3><span className="icon">📶</span> WiFi Configuration</h3>
-                                <p>Configure your device to sync data over WiFi.</p>
-                            </div>
-
-                            <form className="wifi-form" onSubmit={(e) => { e.preventDefault(); alert('WiFi credentials sent to device!'); }}>
-                                <div className="form-group">
-                                    <label>Network Name (SSID)</label>
-                                    <input type="text" placeholder="Enter WiFi Name" required />
+                                    <label>Address</label>
+                                    <textarea
+                                        value={profile.address}
+                                        onChange={e => setProfile({ ...profile, address: e.target.value })}
+                                    />
                                 </div>
                                 <div className="form-group">
-                                    <label>Password</label>
-                                    <input type="password" placeholder="Enter WiFi Password" required />
+                                    <label>Emergency Contact</label>
+                                    <input
+                                        type="text"
+                                        value={profile.emergency_contact}
+                                        onChange={e => setProfile({ ...profile, emergency_contact: e.target.value })}
+                                        placeholder="Name & Phone Number"
+                                    />
                                 </div>
-                                <button type="submit" className="btn-primary">
-                                    Configure Device
+                                <div className="form-group">
+                                    <label>Medical Conditions / Allergies</label>
+                                    <textarea
+                                        value={profile.medical_conditions}
+                                        onChange={e => setProfile({ ...profile, medical_conditions: e.target.value })}
+                                    />
+                                </div>
+                                <button type="submit" className="btn-primary" disabled={savingProfile}>
+                                    {savingProfile ? 'Saving...' : 'Save Profile'}
                                 </button>
                             </form>
                         </div>
-                    </div>
-                )}
-            </main>
+                    )
+                }
+
+                {
+                    activeTab === 'devices' && (
+                        <div className="devices-container">
+                            <div className="device-section">
+                                <div className="section-header">
+                                    <h3><span className="icon">🔵</span> Bluetooth Connection</h3>
+                                    <p>Connect your wearable health monitor via Bluetooth.</p>
+                                </div>
+
+                                <div className="bluetooth-controls">
+                                    {!isScanning && !connectedDevice && (
+                                        <button className="btn-primary scan-btn" onClick={handleScanBluetooth}>
+                                            Scan for Devices
+                                        </button>
+                                    )}
+
+                                    {isScanning && (
+                                        <div className="scanning-indicator">
+                                            <div className="spinner"></div>
+                                            <p>Scanning for nearby devices...</p>
+                                        </div>
+                                    )}
+
+                                    {connectedDevice && (
+                                        <div className="connected-device-card">
+                                            <div className="device-info">
+                                                <h4>{connectedDevice.name}</h4>
+                                                <span className="status-badge normal">Connected</span>
+                                            </div>
+                                            <button className="btn-secondary" onClick={() => setConnectedDevice(null)}>
+                                                Disconnect
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {!connectedDevice && scannedDevices.length > 0 && (
+                                        <div className="device-list">
+                                            <h4>Available Devices</h4>
+                                            {scannedDevices.map(device => (
+                                                <div key={device.id} className="device-item">
+                                                    <span>{device.name}</span>
+                                                    <button
+                                                        className="btn-small"
+                                                        onClick={() => handleConnectDevice(device)}
+                                                    >
+                                                        Connect
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="device-section">
+                                <div className="section-header">
+                                    <h3><span className="icon">📶</span> WiFi Configuration</h3>
+                                    <p>Configure your device to sync data over WiFi.</p>
+                                </div>
+
+                                <form className="wifi-form" onSubmit={(e) => { e.preventDefault(); alert('WiFi credentials sent to device!'); }}>
+                                    <div className="form-group">
+                                        <label>Network Name (SSID)</label>
+                                        <input type="text" placeholder="Enter WiFi Name" required />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Password</label>
+                                        <input type="password" placeholder="Enter WiFi Password" required />
+                                    </div>
+                                    <button type="submit" className="btn-primary">
+                                        Configure Device
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    )
+                }
+            </main >
         </div >
     );
 };
