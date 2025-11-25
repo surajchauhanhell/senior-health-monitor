@@ -13,7 +13,7 @@ const UniqueFeatures = () => {
     ];
 
     return (
-        <section className="section features-section">
+        <section id="features" className="section features-section">
             <div className="container">
                 <div className="section-header text-center">
                     <h2 className="section-title">Why We Are <span className="text-gradient">Different</span></h2>

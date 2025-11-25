@@ -1,7 +1,20 @@
-import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Hero.css';
 
 const Hero = () => {
+    const navigate = useNavigate();
+
+    const handleGetStarted = () => {
+        navigate('/signup');
+    };
+
+    const handleViewFeatures = () => {
+        const featuresSection = document.getElementById('features');
+        if (featuresSection) {
+            featuresSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     return (
         <section className="hero section">
             <div className="hero-bg-glow"></div>
@@ -16,8 +29,8 @@ const Hero = () => {
                         AI-powered vitals tracking, predictive analytics, fall detection, and instant caregiver alerts – protecting elders even when no one is around.
                     </p>
                     <div className="hero-buttons">
-                        <button className="btn btn-primary">Get Started</button>
-                        <button className="btn btn-outline">View Full Features</button>
+                        <button className="btn btn-primary" onClick={handleGetStarted}>Get Started</button>
+                        <button className="btn btn-outline" onClick={handleViewFeatures}>View Full Features</button>
                     </div>
 
                     <div className="hero-stats">

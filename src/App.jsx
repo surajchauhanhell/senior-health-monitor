@@ -7,6 +7,7 @@ import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import Chatbot from './components/Chatbot';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
             <Route path="/doctor" element={<DoctorDashboard />} />
           </Route>
         </Routes>
+        <Chatbot />
       </div>
     </Router>
   );
