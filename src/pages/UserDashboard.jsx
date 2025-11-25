@@ -52,7 +52,7 @@ const UserDashboard = () => {
         if (hrStatus === 'critical' && !showCriticalAlert && !alertCooldown) {
             const timer = setTimeout(() => {
                 setShowCriticalAlert(true);
-            }, 7000); // 7 seconds delay before showing popup
+            }, 3000); // 3 seconds delay before showing popup
             return () => clearTimeout(timer);
         }
     }, [hrStatus, showCriticalAlert, alertCooldown]);
