@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { calculateStatus, calculateDetailedStatus } from '../utils/healthLogic';
 import { BluetoothManager } from '../utils/bluetoothManager';
+import CriticalAlertModal from '../components/CriticalAlertModal';
 import '../styles/Dashboard.css';
 
 const UserDashboard = () => {
@@ -29,6 +30,10 @@ const UserDashboard = () => {
     const [scannedDevices, setScannedDevices] = useState([]);
     const [connectedDevice, setConnectedDevice] = useState(null);
 
+    // Critical Alert State
+    const [showCriticalAlert, setShowCriticalAlert] = useState(false);
+    const [alertCooldown, setAlertCooldown] = useState(false);
+
     // Calculate detailed status for display
     let userAge = 65;
     if (profile.age && !isNaN(parseInt(profile.age))) {
@@ -41,6 +46,28 @@ const UserDashboard = () => {
         currentVital.bp_dia,
         currentVital.spo2
     );
+
+    // Trigger Critical Alert
+    useEffect(() => {
+        if (hrStatus === 'critical' && !showCriticalAlert && !alertCooldown) {
+            setShowCriticalAlert(true);
+        }
+    }, [hrStatus, showCriticalAlert, alertCooldown]);
+
+    const handleAlertComplete = () => {
+        setShowCriticalAlert(false);
+        setAlertCooldown(true);
+        handleSOS();
+        // Reset cooldown after 1 minute
+        setTimeout(() => setAlertCooldown(false), 60000);
+    };
+
+    const handleAlertCancel = () => {
+        setShowCriticalAlert(false);
+        setAlertCooldown(true);
+        // Reset cooldown after 30 seconds if cancelled
+        setTimeout(() => setAlertCooldown(false), 30000);
+    };
 
     // Simulate real-time data updates and sync to Supabase
     useEffect(() => {
@@ -711,6 +738,12 @@ const UserDashboard = () => {
                     )
                 }
             </main >
+
+            <CriticalAlertModal
+                isOpen={showCriticalAlert}
+                onCancel={handleAlertCancel}
+                onComplete={handleAlertComplete}
+            />
         </div >
     );
 };
