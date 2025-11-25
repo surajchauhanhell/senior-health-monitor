@@ -23,9 +23,14 @@ const UserDashboard = () => {
         medical_conditions: ''
     });
 
+    // Device State
+    const [isScanning, setIsScanning] = useState(false);
+    const [scannedDevices, setScannedDevices] = useState([]);
+    const [connectedDevice, setConnectedDevice] = useState(null);
+
     // Simulate real-time data updates and sync to Supabase
     useEffect(() => {
-        if (!profile || !profile.id) return; // Wait for profile to load
+        if (!profile || !profile.id || !connectedDevice) return; // Wait for profile and device connection
 
         const interval = setInterval(async () => {
             const newVital = {
@@ -72,7 +77,7 @@ const UserDashboard = () => {
         }, 5000); // Update every 5 seconds to avoid spamming DB too much
 
         return () => clearInterval(interval);
-    }, [profile]); // Re-run if profile changes
+    }, [profile, connectedDevice]); // Re-run if profile or device connection changes
 
     // Fetch data based on active tab
     useEffect(() => {
@@ -274,10 +279,6 @@ const UserDashboard = () => {
         window.location.href = '/login';
     };
 
-    const [isScanning, setIsScanning] = useState(false);
-    const [scannedDevices, setScannedDevices] = useState([]);
-    const [connectedDevice, setConnectedDevice] = useState(null);
-
     const handleScanBluetooth = () => {
         setIsScanning(true);
         setScannedDevices([]);
@@ -356,44 +357,57 @@ const UserDashboard = () => {
 
                 {activeTab === 'overview' && (
                     <>
-                        <div className="stats-grid">
-                            <div className="stat-card">
-                                <h3>Heart Rate</h3>
-                                <div className="stat-value">{currentVital.hr} <small>BPM</small></div>
-                                <div className="stat-status normal">Normal</div>
+                        {!connectedDevice ? (
+                            <div className="no-device-container" style={{ textAlign: 'center', padding: '50px', color: '#888' }}>
+                                <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🔌</div>
+                                <h2>No Device Connected</h2>
+                                <p style={{ marginBottom: '30px' }}>Please connect your health monitor to view real-time vitals.</p>
+                                <button className="btn-primary" onClick={() => setActiveTab('devices')}>
+                                    Connect Device
+                                </button>
                             </div>
-                            <div className="stat-card">
-                                <h3>Blood Pressure</h3>
-                                <div className="stat-value">{currentVital.bp_sys}/{currentVital.bp_dia} <small>mmHg</small></div>
-                                <div className="stat-status normal">Normal</div>
-                            </div>
-                            <div className="stat-card">
-                                <h3>SpO2</h3>
-                                <div className="stat-value">{currentVital.spo2}%</div>
-                                <div className="stat-status normal">Normal</div>
-                            </div>
-                        </div>
+                        ) : (
+                            <>
+                                <div className="stats-grid">
+                                    <div className="stat-card">
+                                        <h3>Heart Rate</h3>
+                                        <div className="stat-value">{currentVital.hr} <small>BPM</small></div>
+                                        <div className="stat-status normal">Normal</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <h3>Blood Pressure</h3>
+                                        <div className="stat-value">{currentVital.bp_sys}/{currentVital.bp_dia} <small>mmHg</small></div>
+                                        <div className="stat-status normal">Normal</div>
+                                    </div>
+                                    <div className="stat-card">
+                                        <h3>SpO2</h3>
+                                        <div className="stat-value">{currentVital.spo2}%</div>
+                                        <div className="stat-status normal">Normal</div>
+                                    </div>
+                                </div>
 
-                        <div className="chart-container">
-                            <h3>Live Heart Rate Monitor</h3>
-                            <div className="chart-wrapper">
-                                <ResponsiveContainer width="100%" height={300}>
-                                    {vitals && vitals.length > 0 ? (
-                                        <LineChart data={vitals}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                                            <XAxis dataKey="time" stroke="#666" />
-                                            <YAxis stroke="#666" domain={[60, 100]} />
-                                            <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #333' }} />
-                                            <Line type="monotone" dataKey="hr" stroke="#00eaff" strokeWidth={2} dot={false} />
-                                        </LineChart>
-                                    ) : (
-                                        <div style={{ color: '#666', textAlign: 'center', paddingTop: '100px' }}>
-                                            Waiting for data...
-                                        </div>
-                                    )}
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
+                                <div className="chart-container">
+                                    <h3>Live Heart Rate Monitor</h3>
+                                    <div className="chart-wrapper">
+                                        <ResponsiveContainer width="100%" height={300}>
+                                            {vitals && vitals.length > 0 ? (
+                                                <LineChart data={vitals}>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                                                    <XAxis dataKey="time" stroke="#666" />
+                                                    <YAxis stroke="#666" domain={[60, 100]} />
+                                                    <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #333' }} />
+                                                    <Line type="monotone" dataKey="hr" stroke="#00eaff" strokeWidth={2} dot={false} />
+                                                </LineChart>
+                                            ) : (
+                                                <div style={{ color: '#666', textAlign: 'center', paddingTop: '100px' }}>
+                                                    Waiting for data...
+                                                </div>
+                                            )}
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </>
                 )}
 
