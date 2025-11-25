@@ -31,7 +31,7 @@ const CriticalAlertModal = ({ isOpen, onCancel, onComplete }) => {
                 <h2>Critical Alert!</h2>
                 <p>Abnormal heart rate detected.</p>
                 <p>Sending emergency SOS in:</p>
-                
+
                 <div className="countdown-circle">
                     <span className="countdown-number">{count}</span>
                 </div>

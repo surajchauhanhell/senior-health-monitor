@@ -50,7 +50,10 @@ const UserDashboard = () => {
     // Trigger Critical Alert
     useEffect(() => {
         if (hrStatus === 'critical' && !showCriticalAlert && !alertCooldown) {
-            setShowCriticalAlert(true);
+            const timer = setTimeout(() => {
+                setShowCriticalAlert(true);
+            }, 7000); // 7 seconds delay before showing popup
+            return () => clearTimeout(timer);
         }
     }, [hrStatus, showCriticalAlert, alertCooldown]);
 
